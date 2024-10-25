@@ -1,28 +1,86 @@
-import { useContext } from "react";
+import { useContext, useEffect, useState } from "react";
 import { ConvertContext } from "../utils/context/ConvertContext";
+import Flags from "./Flags";
 
+const fileConversionMap = {
+  txt: ["pdf", "docx", "csv", "json", "xml"],
+  docx: ["pdf", "txt", "html", "odt"],
+  pdf: ["docx", "txt", "jpg", "png", "html", "pptx"],
+  csv: ["xlsx", "json", "txt", "xml"],
+  json: ["csv", "xml", "yaml", "txt"],
+  xml: ["json", "csv", "html", "txt"],
+  xlsx: ["csv", "pdf", "ods", "json"],
+  jpg: ["png", "gif", "bmp", "pdf", "svg"],
+  png: ["jpg", "gif", "bmp", "pdf", "svg"],
+  gif: ["jpg", "png", "bmp", "mp4"],
+  mp4: ["gif", "avi", "mkv", "mov"],
+  avi: ["mp4", "mkv", "mov"],
+  mp3: ["wav", "ogg", "flac", "aac"],
+  wav: ["mp3", "ogg", "flac", "aac"],
+  html: ["pdf", "docx", "txt"],
+  pptx: ["pdf", "jpg", "png"],
+  zip: ["rar", "tar", "7z"],
+  rar: ["zip", "7z", "tar"],
+  exe: ["zip", "rar"], // Usually compressed or archived for distribution
+};
 export default function ConvertTypeInput() {
-  const { setConvertInfo } = useContext(ConvertContext);
+  const { setConvertInfo, initialType, resultType, file } =
+    useContext(ConvertContext);
+  const [similarFlag, setSimilarFlag] = useState(false);
+  const [convertFlag, setConvertFlag] = useState(false);
+  const [isMounted, setIsMounted] = useState(true);
+  const TYPES_EXIST = initialType !== "" && resultType !== "";
+  const SIMILAR_TYPES = TYPES_EXIST && initialType == resultType;
+  const CAN_CONVERT =
+    TYPES_EXIST &&
+    fileConversionMap[initialType] &&
+    fileConversionMap[initialType].includes(resultType);
+  const CANNOT_CONVERT = !Object.prototype.hasOwnProperty.call(
+    fileConversionMap,
+    initialType
+  );
+  useEffect(() => {
+    if (!initialType || CANNOT_CONVERT) {
+      document.getElementById("result-type").setAttribute("disabled", true);
+    } else document.getElementById("result-type").removeAttribute("disabled");
+
+    if (SIMILAR_TYPES) {
+      setSimilarFlag(true);
+    } else setSimilarFlag(false);
+
+    if (!CAN_CONVERT) {
+      setConvertFlag(true);
+    } else setConvertFlag(false);
+
+    if (CANNOT_CONVERT&& initialType !== "") {
+      return window.alert(`We are unable to convert .${initialType} files`);
+    }
+  }, [SIMILAR_TYPES, CAN_CONVERT, CANNOT_CONVERT, initialType, isMounted]);
 
   return (
     <>
+      {similarFlag ? <Flags error="Both types cannot be the same" /> : null}
+      {convertFlag && TYPES_EXIST ? (
+        <Flags error={`${initialType} cannot be converted to ${resultType}`} />
+      ) : null}
       <label htmlFor="initial-type"></label>
-      <select
+      <input
+        type="text"
         id="initial-type"
+        value={initialType}
+        disabled
         onChange={(ev) => {
           setConvertInfo((currentState) => ({
             ...currentState,
             initialType: ev.target.value,
+            resultType: "",
           }));
         }}
-      >
-        <option selected hidden disabled></option>
-        <option value="pdf">pdf</option>
-        <option value="docx">docx</option>
-      </select>
+      />
       <label htmlFor="result-type"></label>
       <select
         id="result-type"
+        value={resultType}
         onChange={(ev) => {
           setConvertInfo((currentState) => ({
             ...currentState,
@@ -30,9 +88,22 @@ export default function ConvertTypeInput() {
           }));
         }}
       >
-        <option selected hidden disabled></option>
-        <option value="pdf">pdf</option>
-        <option value="docx">docx</option>
+        <option value="" hidden></option>
+        {fileConversionMap[initialType]
+          ? fileConversionMap[initialType].map((type) => {
+              return (
+                <option value={type} key={type}>
+                  {type}
+                </option>
+              );
+            })
+          : Object.keys(fileConversionMap).map((type) => {
+              return (
+                <option value={type} key={type}>
+                  {type}
+                </option>
+              );
+            })}
       </select>
     </>
   );

@@ -2,8 +2,7 @@ import { useContext } from "react";
 import { ConvertContext } from "../utils/context/ConvertContext";
 
 export default function ConvertInput() {
-  const { setConvertInfo, file } = useContext(ConvertContext);
-  const context = useContext(ConvertContext);
+  const { setConvertInfo } = useContext(ConvertContext);
   return (
     <>
       <label htmlFor="file-input">Upload File</label>
@@ -13,15 +12,15 @@ export default function ConvertInput() {
         id="file-input"
         name="file-input"
         onChange={(ev) => {
+          const fileType = ev.target.files[0].name.split(".").pop();
           setConvertInfo((currentState) => ({
             ...currentState,
             file: ev.target.files[0],
+            initialType: fileType,
+            resultType: "",
           }));
         }}
       />
-
-      <button onClick={() => console.log(context, file)}>Log Context</button>
-      <button type="submit">Convert</button>
     </>
   );
 }
