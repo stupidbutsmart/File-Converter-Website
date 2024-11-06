@@ -35,7 +35,7 @@ function arrayBufferToBase64(buffer) {
   let binary = "";
   const view = new Uint8Array(buffer);
   for (let i = 0; i < view.byteLength; i++) {
-    binary += view[i].toString(2);
+    binary += String.fromCharCode(view[i]);
   }
   return window.btoa(binary);
 }

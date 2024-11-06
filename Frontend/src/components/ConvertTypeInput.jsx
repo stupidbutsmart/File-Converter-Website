@@ -1,34 +1,29 @@
 import { useContext, useEffect, useState } from "react";
 import { ConvertContext } from "../utils/context/ConvertContext";
 import Flags from "./Flags";
-
+import "../styles/types.css";
 const fileConversionMap = {
   txt: ["pdf", "docx", "csv", "json", "xml"],
-  docx: ["pdf", "txt", "html", "odt"],
+  docx: ["pdf", "txt", "html"],
   pdf: ["docx", "txt", "jpg", "png", "html", "pptx"],
   csv: ["xlsx", "json", "txt", "xml"],
-  json: ["csv", "xml", "yaml", "txt"],
-  xml: ["json", "csv", "html", "txt"],
-  xlsx: ["csv", "pdf", "ods", "json"],
-  jpg: ["png", "gif", "bmp", "pdf", "svg"],
-  png: ["jpg", "gif", "bmp", "pdf", "svg"],
-  gif: ["jpg", "png", "bmp", "mp4"],
-  mp4: ["gif", "avi", "mkv", "mov"],
-  avi: ["mp4", "mkv", "mov"],
-  mp3: ["wav", "ogg", "flac", "aac"],
-  wav: ["mp3", "ogg", "flac", "aac"],
+  json: ["csv", "xml", "txt"],
+  xml: ["json", "csv", "txt"],
+  xlsx: ["csv", "pdf", "json"],
+  jpg: ["png", "pdf"],
+  png: ["jpg", "pdf"],
+  gif: ["jpg", "png"],
+  mp4: ["gif"],
+  mp3: ["wav"],
+  wav: ["mp3"],
   html: ["pdf", "docx", "txt"],
   pptx: ["pdf", "jpg", "png"],
-  zip: ["rar", "tar", "7z"],
-  rar: ["zip", "7z", "tar"],
-  exe: ["zip", "rar"], // Usually compressed or archived for distribution
 };
 export default function ConvertTypeInput() {
-  const { setConvertInfo, initialType, resultType, file } =
+  const { setConvertInfo, initialType, resultType } =
     useContext(ConvertContext);
   const [similarFlag, setSimilarFlag] = useState(false);
   const [convertFlag, setConvertFlag] = useState(false);
-  const [isMounted, setIsMounted] = useState(true);
   const TYPES_EXIST = initialType !== "" && resultType !== "";
   const SIMILAR_TYPES = TYPES_EXIST && initialType == resultType;
   const CAN_CONVERT =
@@ -43,7 +38,6 @@ export default function ConvertTypeInput() {
     if (!initialType || CANNOT_CONVERT) {
       document.getElementById("result-type").setAttribute("disabled", true);
     } else document.getElementById("result-type").removeAttribute("disabled");
-
     if (SIMILAR_TYPES) {
       setSimilarFlag(true);
     } else setSimilarFlag(false);
@@ -52,13 +46,13 @@ export default function ConvertTypeInput() {
       setConvertFlag(true);
     } else setConvertFlag(false);
 
-    if (CANNOT_CONVERT&& initialType !== "") {
+    if (CANNOT_CONVERT && initialType !== "") {
       return window.alert(`We are unable to convert .${initialType} files`);
     }
-  }, [SIMILAR_TYPES, CAN_CONVERT, CANNOT_CONVERT, initialType, isMounted]);
+  }, [SIMILAR_TYPES, CAN_CONVERT, CANNOT_CONVERT, initialType]);
 
   return (
-    <>
+    <div className="d-flex justify-content-center align-items-center my-3">
       {similarFlag ? <Flags error="Both types cannot be the same" /> : null}
       {convertFlag && TYPES_EXIST ? (
         <Flags error={`${initialType} cannot be converted to ${resultType}`} />
@@ -67,7 +61,8 @@ export default function ConvertTypeInput() {
       <input
         type="text"
         id="initial-type"
-        value={initialType}
+        className="d-none"
+        value={initialType || "hi"}
         disabled
         onChange={(ev) => {
           setConvertInfo((currentState) => ({
@@ -78,9 +73,21 @@ export default function ConvertTypeInput() {
         }}
       />
       <label htmlFor="result-type"></label>
+      <span className="my-auto">
+        Converting
+        <div className="init-type">
+          <span>
+            {initialType || (
+              <div dangerouslySetInnerHTML={{ __html: "&nbsp" }} />
+            )}
+          </span>
+        </div>
+        To
+      </span>
       <select
         id="result-type"
         value={resultType}
+        className="form-select w-25 ms-1"
         onChange={(ev) => {
           setConvertInfo((currentState) => ({
             ...currentState,
@@ -105,6 +112,6 @@ export default function ConvertTypeInput() {
               );
             })}
       </select>
-    </>
+    </div>
   );
 }

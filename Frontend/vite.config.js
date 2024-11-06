@@ -8,4 +8,7 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: "./setupTest.js",
   },
+  server: {
+    cors: false
+  }
 });
